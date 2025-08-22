@@ -1,0 +1,854 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Personal Dashboard - HeroUI</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/@heroui/react@2.4.6/dist/index.js"></script>
+    <link rel="stylesheet" href="https://unpkg.com/@heroui/theme@2.2.9/dist/index.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        background: '#0f0f23',
+                        foreground: '#ffffff',
+                        primary: {
+                            50: '#eff6ff',
+                            100: '#dbeafe', 
+                            200: '#bfdbfe',
+                            300: '#93c5fd',
+                            400: '#60a5fa',
+                            500: '#3b82f6',
+                            600: '#2563eb',
+                            700: '#1d4ed8',
+                            800: '#1e40af',
+                            900: '#1e3a8a',
+                        },
+                        secondary: {
+                            50: '#f8fafc',
+                            100: '#f1f5f9',
+                            200: '#e2e8f0',
+                            300: '#cbd5e1',
+                            400: '#94a3b8',
+                            500: '#64748b',
+                            600: '#475569',
+                            700: '#334155',
+                            800: '#1e293b',
+                            900: '#0f172a',
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', 'sans-serif'],
+                    },
+                    animation: {
+                        'fade-in': 'fadeIn 0.5s ease-in-out',
+                        'slide-up': 'slideUp 0.3s ease-out',
+                        'pulse-slow': 'pulse 3s infinite',
+                    }
+                }
+            },
+            darkMode: 'class',
+        };
+    </script>
+    
+    <style>
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        @keyframes slideUp {
+            from { transform: translateY(20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        
+        .widget-card {
+            background: linear-gradient(145deg, #1a1a2e 0%, #16213e 100%);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.3s ease;
+        }
+        
+        .widget-card:hover {
+            border-color: rgba(59, 130, 246, 0.5);
+            box-shadow: 0 10px 40px rgba(59, 130, 246, 0.1);
+            transform: translateY(-2px);
+        }
+        
+        .progress-ring {
+            transition: stroke-dasharray 0.3s ease-in-out;
+        }
+        
+        .habit-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            transition: all 0.2s ease;
+        }
+        
+        .habit-dot.completed {
+            background-color: #10b981;
+        }
+        
+        .habit-dot.missed {
+            background-color: #ef4444;
+        }
+        
+        .habit-dot.pending {
+            background-color: #6b7280;
+        }
+        
+        .scrollbar-thin {
+            scrollbar-width: thin;
+            scrollbar-color: rgba(255, 255, 255, 0.2) transparent;
+        }
+        
+        .scrollbar-thin::-webkit-scrollbar {
+            width: 6px;
+        }
+        
+        .scrollbar-thin::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        
+        .scrollbar-thin::-webkit-scrollbar-thumb {
+            background-color: rgba(255, 255, 255, 0.2);
+            border-radius: 3px;
+        }
+    </style>
+</head>
+
+<body class="dark bg-background text-foreground font-sans">
+    <!-- @COMPONENT: DashboardLayout -->
+    <div class="min-h-screen bg-gradient-to-br from-background via-slate-900 to-slate-800">
+        
+        <!-- Header Navigation -->
+        <!-- @COMPONENT: Header -->
+        <header class="sticky top-0 z-50 bg-background/80 backdrop-blur-md border-b border-white/10">
+            <div class="container mx-auto px-6 py-4">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center space-x-4">
+                        <div class="w-10 h-10 bg-gradient-to-r from-primary-500 to-primary-600 rounded-xl flex items-center justify-center">
+                            <i class="fas fa-tachometer-alt text-white text-lg"></i>
+                        </div>
+                        <div>
+                            <h1 class="text-xl font-semibold text-white">Personal Dashboard</h1>
+                            <p class="text-sm text-gray-400">Welcome back, <span data-bind="user.name">Alex</span></p>
+                        </div>
+                    </div>
+                    
+                    <div class="flex items-center space-x-4">
+                        <button class="p-2 hover:bg-white/10 rounded-lg transition-colors" data-event="click:toggleNotifications">
+                            <i class="fas fa-bell text-gray-400 hover:text-white"></i>
+                        </button>
+                        <button class="p-2 hover:bg-white/10 rounded-lg transition-colors" data-event="click:openSettings">
+                            <i class="fas fa-cog text-gray-400 hover:text-white"></i>
+                        </button>
+                        <div class="w-8 h-8 bg-gradient-to-r from-green-400 to-blue-500 rounded-full"></div>
+                    </div>
+                </div>
+            </div>
+        </header>
+        <!-- @END_COMPONENT: Header -->
+
+        <!-- Main Dashboard Grid -->
+        <main class="container mx-auto px-6 py-8">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 auto-rows-fr">
+
+                <!-- Reading Progress Widget (Goodreads) -->
+                <!-- @COMPONENT: ReadingProgressWidget -->
+                <div class="widget-card rounded-2xl p-6 animate-fade-in">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-lg font-semibold text-white flex items-center">
+                            <i class="fas fa-book text-amber-400 mr-2"></i>
+                            Reading Progress
+                        </h3>
+                        <span class="text-xs text-gray-400 bg-amber-400/20 px-2 py-1 rounded-full">Goodreads</span>
+                    </div>
+                    
+                    <div class="space-y-4">
+                        <div class="flex items-center justify-center">
+                            <div class="relative w-24 h-24">
+                                <svg class="w-24 h-24 transform -rotate-90" viewBox="0 0 100 100">
+                                    <circle cx="50" cy="50" r="45" stroke="rgba(245, 158, 11, 0.2)" stroke-width="8" fill="none" />
+                                    <circle cx="50" cy="50" r="45" stroke="#f59e0b" stroke-width="8" fill="none"
+                                            stroke-dasharray="283" stroke-dashoffset="113" class="progress-ring" />
+                                </svg>
+                                <div class="absolute inset-0 flex items-center justify-center">
+                                    <span class="text-xl font-bold text-amber-400">60%</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="text-center">
+                            <p class="text-sm text-gray-300 mb-1" data-mock="true">Currently Reading:</p>
+                            <p class="font-medium text-white text-sm" data-bind="currentBook.title">The Midnight Library</p>
+                            <p class="text-xs text-gray-400" data-bind="currentBook.author">by Matt Haig</p>
+                        </div>
+                        
+                        <div class="bg-white/5 rounded-lg p-3 space-y-2">
+                            <div class="flex justify-between text-xs">
+                                <span class="text-gray-400">Books read this year</span>
+                                <span class="text-white font-medium" data-bind="yearProgress.count">12/20</span>
+                            </div>
+                            <div class="w-full bg-gray-700 rounded-full h-2">
+                                <div class="bg-gradient-to-r from-amber-400 to-orange-400 h-2 rounded-full" style="width: 60%"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- @END_COMPONENT: ReadingProgressWidget -->
+
+                <!-- Music Tracking Widget -->
+                <!-- @COMPONENT: MusicTrackingWidget -->
+                <div class="widget-card rounded-2xl p-6 animate-fade-in">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-lg font-semibold text-white flex items-center">
+                            <i class="fas fa-music text-purple-400 mr-2"></i>
+                            Music Log
+                        </h3>
+                        <button class="text-purple-400 hover:text-purple-300 text-sm" data-event="click:addMusic">
+                            <i class="fas fa-plus"></i>
+                        </button>
+                    </div>
+                    
+                    <div class="space-y-3 max-h-48 overflow-y-auto scrollbar-thin">
+                        <!-- @MAP: musicEntries.map(entry => ( -->
+                        <div class="bg-white/5 rounded-lg p-3 hover:bg-white/10 transition-colors" data-mock="true">
+                            <div class="flex items-start justify-between">
+                                <div class="flex-1 min-w-0">
+                                    <p class="font-medium text-white text-sm truncate" data-bind="entry.album">Dark Side of the Moon</p>
+                                    <p class="text-xs text-gray-400 truncate" data-bind="entry.artist">Pink Floyd</p>
+                                    <p class="text-xs text-gray-500 mt-1" data-bind="entry.date">Jan 15, 2024</p>
+                                </div>
+                                <div class="flex items-center ml-2">
+                                    <!-- @MAP: Array.from({length: entry.rating}).map((_, i) => ( -->
+                                    <i class="fas fa-star text-yellow-400 text-xs"></i>
+                                    <i class="fas fa-star text-yellow-400 text-xs"></i>
+                                    <i class="fas fa-star text-yellow-400 text-xs"></i>
+                                    <i class="fas fa-star text-yellow-400 text-xs"></i>
+                                    <i class="fas fa-star text-gray-600 text-xs"></i>
+                                    <!-- @END_MAP )) -->
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="bg-white/5 rounded-lg p-3 hover:bg-white/10 transition-colors" data-mock="true">
+                            <div class="flex items-start justify-between">
+                                <div class="flex-1 min-w-0">
+                                    <p class="font-medium text-white text-sm truncate">Rumours</p>
+                                    <p class="text-xs text-gray-400 truncate">Fleetwood Mac</p>
+                                    <p class="text-xs text-gray-500 mt-1">Jan 14, 2024</p>
+                                </div>
+                                <div class="flex items-center ml-2">
+                                    <i class="fas fa-star text-yellow-400 text-xs"></i>
+                                    <i class="fas fa-star text-yellow-400 text-xs"></i>
+                                    <i class="fas fa-star text-yellow-400 text-xs"></i>
+                                    <i class="fas fa-star text-yellow-400 text-xs"></i>
+                                    <i class="fas fa-star text-yellow-400 text-xs"></i>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- @END_MAP )) -->
+                    </div>
+                </div>
+                <!-- @END_COMPONENT: MusicTrackingWidget -->
+
+                <!-- To-Do List Widget -->
+                <!-- @COMPONENT: TodoWidget -->
+                <div class="widget-card rounded-2xl p-6 animate-fade-in">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-lg font-semibold text-white flex items-center">
+                            <i class="fas fa-tasks text-green-400 mr-2"></i>
+                            To-Do List
+                        </h3>
+                        <button class="text-green-400 hover:text-green-300 text-sm" data-event="click:addTodo">
+                            <i class="fas fa-plus"></i>
+                        </button>
+                    </div>
+                    
+                    <div class="space-y-2 max-h-48 overflow-y-auto scrollbar-thin">
+                        <!-- @MAP: todoItems.map(item => ( -->
+                        <div class="flex items-center space-x-3 p-2 hover:bg-white/5 rounded-lg transition-colors" data-mock="true">
+                            <input type="checkbox" class="w-4 h-4 text-green-400 bg-transparent border-gray-600 rounded focus:ring-green-400" data-bind="item.completed">
+                            <span class="text-sm text-white flex-1" data-bind="item.text">Review project proposal</span>
+                            <button class="text-red-400 hover:text-red-300 opacity-0 group-hover:opacity-100 transition-opacity">
+                                <i class="fas fa-trash text-xs"></i>
+                            </button>
+                        </div>
+                        
+                        <div class="flex items-center space-x-3 p-2 hover:bg-white/5 rounded-lg transition-colors" data-mock="true">
+                            <input type="checkbox" checked class="w-4 h-4 text-green-400 bg-transparent border-gray-600 rounded focus:ring-green-400">
+                            <span class="text-sm text-gray-400 line-through flex-1">Buy groceries</span>
+                            <button class="text-red-400 hover:text-red-300 opacity-0 group-hover:opacity-100 transition-opacity">
+                                <i class="fas fa-trash text-xs"></i>
+                            </button>
+                        </div>
+                        
+                        <div class="flex items-center space-x-3 p-2 hover:bg-white/5 rounded-lg transition-colors" data-mock="true">
+                            <input type="checkbox" class="w-4 h-4 text-green-400 bg-transparent border-gray-600 rounded focus:ring-green-400">
+                            <span class="text-sm text-white flex-1">Call dentist</span>
+                            <button class="text-red-400 hover:text-red-300 opacity-0 group-hover:opacity-100 transition-opacity">
+                                <i class="fas fa-trash text-xs"></i>
+                            </button>
+                        </div>
+                        <!-- @END_MAP )) -->
+                    </div>
+                    
+                    <div class="mt-4 pt-4 border-t border-white/10">
+                        <div class="flex items-center justify-between text-xs text-gray-400">
+                            <span>Progress</span>
+                            <span data-bind="todoProgress">1 of 3 completed</span>
+                        </div>
+                        <div class="w-full bg-gray-700 rounded-full h-1.5 mt-2">
+                            <div class="bg-gradient-to-r from-green-400 to-emerald-400 h-1.5 rounded-full" style="width: 33%"></div>
+                        </div>
+                    </div>
+                </div>
+                <!-- @END_COMPONENT: TodoWidget -->
+
+                <!-- Calendar Widget (iCal) -->
+                <!-- @COMPONENT: CalendarWidget -->
+                <div class="widget-card rounded-2xl p-6 animate-fade-in">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-lg font-semibold text-white flex items-center">
+                            <i class="fas fa-calendar text-blue-400 mr-2"></i>
+                            Calendar
+                        </h3>
+                        <span class="text-xs text-gray-400 bg-blue-400/20 px-2 py-1 rounded-full">iCal</span>
+                    </div>
+                    
+                    <div class="space-y-3">
+                        <div class="text-center">
+                            <p class="text-2xl font-bold text-white" data-bind="currentDate">15</p>
+                            <p class="text-sm text-gray-400" data-bind="currentMonth">January 2024</p>
+                        </div>
+                        
+                        <div class="space-y-2 max-h-32 overflow-y-auto scrollbar-thin">
+                            <!-- @MAP: todayEvents.map(event => ( -->
+                            <div class="bg-white/5 rounded-lg p-3" data-mock="true">
+                                <div class="flex items-start justify-between">
+                                    <div class="flex-1">
+                                        <p class="font-medium text-white text-sm" data-bind="event.title">Team Meeting</p>
+                                        <p class="text-xs text-gray-400" data-bind="event.time">10:00 AM - 11:00 AM</p>
+                                    </div>
+                                    <div class="w-3 h-3 bg-blue-400 rounded-full flex-shrink-0 mt-1"></div>
+                                </div>
+                            </div>
+                            
+                            <div class="bg-white/5 rounded-lg p-3" data-mock="true">
+                                <div class="flex items-start justify-between">
+                                    <div class="flex-1">
+                                        <p class="font-medium text-white text-sm">Doctor Appointment</p>
+                                        <p class="text-xs text-gray-400">2:30 PM - 3:30 PM</p>
+                                    </div>
+                                    <div class="w-3 h-3 bg-red-400 rounded-full flex-shrink-0 mt-1"></div>
+                                </div>
+                            </div>
+                            <!-- @END_MAP )) -->
+                        </div>
+                    </div>
+                </div>
+                <!-- @END_COMPONENT: CalendarWidget -->
+
+                <!-- Meal Planning Widget -->
+                <!-- @COMPONENT: MealPlanningWidget -->
+                <div class="widget-card rounded-2xl p-6 animate-fade-in col-span-1 md:col-span-2">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-lg font-semibold text-white flex items-center">
+                            <i class="fas fa-utensils text-orange-400 mr-2"></i>
+                            Meal Planning
+                        </h3>
+                        <button class="text-orange-400 hover:text-orange-300 text-sm" data-event="click:addMeal">
+                            <i class="fas fa-plus"></i>
+                        </button>
+                    </div>
+                    
+                    <div class="grid grid-cols-7 gap-2">
+                        <!-- @MAP: weekDays.map(day => ( -->
+                        <div class="text-center" data-mock="true">
+                            <p class="text-xs text-gray-400 mb-2">Mon</p>
+                            <div class="bg-white/5 rounded-lg p-2 min-h-16 hover:bg-white/10 transition-colors">
+                                <p class="text-xs text-white font-medium mb-1" data-bind="day.breakfast">Oatmeal</p>
+                                <p class="text-xs text-gray-400" data-bind="day.lunch">Salad</p>
+                            </div>
+                        </div>
+                        
+                        <div class="text-center" data-mock="true">
+                            <p class="text-xs text-gray-400 mb-2">Tue</p>
+                            <div class="bg-white/5 rounded-lg p-2 min-h-16 hover:bg-white/10 transition-colors">
+                                <p class="text-xs text-white font-medium mb-1">Smoothie</p>
+                                <p class="text-xs text-gray-400">Pasta</p>
+                            </div>
+                        </div>
+                        
+                        <div class="text-center" data-mock="true">
+                            <p class="text-xs text-gray-400 mb-2">Wed</p>
+                            <div class="bg-white/5 rounded-lg p-2 min-h-16 hover:bg-white/10 transition-colors">
+                                <p class="text-xs text-white font-medium mb-1">Eggs</p>
+                                <p class="text-xs text-gray-400">Soup</p>
+                            </div>
+                        </div>
+                        
+                        <div class="text-center" data-mock="true">
+                            <p class="text-xs text-gray-400 mb-2">Thu</p>
+                            <div class="bg-white/5 rounded-lg p-2 min-h-16 hover:bg-white/10 transition-colors">
+                                <p class="text-xs text-white font-medium mb-1">Toast</p>
+                                <p class="text-xs text-gray-400">Stir-fry</p>
+                            </div>
+                        </div>
+                        
+                        <div class="text-center" data-mock="true">
+                            <p class="text-xs text-gray-400 mb-2">Fri</p>
+                            <div class="bg-white/5 rounded-lg p-2 min-h-16 hover:bg-white/10 transition-colors">
+                                <p class="text-xs text-white font-medium mb-1">Cereal</p>
+                                <p class="text-xs text-gray-400">Pizza</p>
+                            </div>
+                        </div>
+                        
+                        <div class="text-center" data-mock="true">
+                            <p class="text-xs text-gray-400 mb-2">Sat</p>
+                            <div class="bg-white/5 rounded-lg p-2 min-h-16 hover:bg-white/10 transition-colors">
+                                <p class="text-xs text-white font-medium mb-1">Pancakes</p>
+                                <p class="text-xs text-gray-400">Grill</p>
+                            </div>
+                        </div>
+                        
+                        <div class="text-center" data-mock="true">
+                            <p class="text-xs text-gray-400 mb-2">Sun</p>
+                            <div class="bg-white/5 rounded-lg p-2 min-h-16 hover:bg-white/10 transition-colors">
+                                <p class="text-xs text-white font-medium mb-1">Brunch</p>
+                                <p class="text-xs text-gray-400">Leftovers</p>
+                            </div>
+                        </div>
+                        <!-- @END_MAP )) -->
+                    </div>
+                </div>
+                <!-- @END_COMPONENT: MealPlanningWidget -->
+
+                <!-- Project Management Widget -->
+                <!-- @COMPONENT: ProjectManagementWidget -->
+                <div class="widget-card rounded-2xl p-6 animate-fade-in">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-lg font-semibold text-white flex items-center">
+                            <i class="fas fa-project-diagram text-indigo-400 mr-2"></i>
+                            Projects
+                        </h3>
+                        <button class="text-indigo-400 hover:text-indigo-300 text-sm" data-event="click:addProject">
+                            <i class="fas fa-plus"></i>
+                        </button>
+                    </div>
+                    
+                    <div class="space-y-4">
+                        <!-- @MAP: projects.map(project => ( -->
+                        <div class="bg-white/5 rounded-lg p-4 hover:bg-white/10 transition-colors" data-mock="true">
+                            <div class="flex items-center justify-between mb-2">
+                                <h4 class="font-medium text-white text-sm" data-bind="project.name">Website Redesign</h4>
+                                <span class="text-xs text-indigo-400 bg-indigo-400/20 px-2 py-1 rounded-full" data-bind="project.status">In Progress</span>
+                            </div>
+                            <p class="text-xs text-gray-400 mb-3" data-bind="project.deadline">Due: Jan 25, 2024</p>
+                            <div class="space-y-2">
+                                <div class="flex justify-between text-xs">
+                                    <span class="text-gray-400">Progress</span>
+                                    <span class="text-white" data-bind="project.progress">75%</span>
+                                </div>
+                                <div class="w-full bg-gray-700 rounded-full h-2">
+                                    <div class="bg-gradient-to-r from-indigo-400 to-purple-400 h-2 rounded-full" style="width: 75%"></div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="bg-white/5 rounded-lg p-4 hover:bg-white/10 transition-colors" data-mock="true">
+                            <div class="flex items-center justify-between mb-2">
+                                <h4 class="font-medium text-white text-sm">Mobile App</h4>
+                                <span class="text-xs text-yellow-400 bg-yellow-400/20 px-2 py-1 rounded-full">Planning</span>
+                            </div>
+                            <p class="text-xs text-gray-400 mb-3">Due: Feb 15, 2024</p>
+                            <div class="space-y-2">
+                                <div class="flex justify-between text-xs">
+                                    <span class="text-gray-400">Progress</span>
+                                    <span class="text-white">25%</span>
+                                </div>
+                                <div class="w-full bg-gray-700 rounded-full h-2">
+                                    <div class="bg-gradient-to-r from-yellow-400 to-orange-400 h-2 rounded-full" style="width: 25%"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- @END_MAP )) -->
+                    </div>
+                </div>
+                <!-- @END_COMPONENT: ProjectManagementWidget -->
+
+                <!-- RSS Feed Widget -->
+                <!-- @COMPONENT: RSSFeedWidget -->
+                <div class="widget-card rounded-2xl p-6 animate-fade-in">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-lg font-semibold text-white flex items-center">
+                            <i class="fas fa-rss text-orange-500 mr-2"></i>
+                            RSS Feed
+                        </h3>
+                        <button class="text-orange-500 hover:text-orange-400 text-sm" data-event="click:refreshFeed">
+                            <i class="fas fa-sync-alt"></i>
+                        </button>
+                    </div>
+                    
+                    <div class="space-y-3 max-h-48 overflow-y-auto scrollbar-thin">
+                        <!-- @MAP: rssItems.map(item => ( -->
+                        <div class="bg-white/5 rounded-lg p-3 hover:bg-white/10 transition-colors cursor-pointer" data-mock="true">
+                            <h4 class="font-medium text-white text-sm mb-1 line-clamp-2" data-bind="item.title">The Future of Web Development: Trends to Watch</h4>
+                            <p class="text-xs text-gray-400 mb-2" data-bind="item.source">TechCrunch • 2h ago</p>
+                            <p class="text-xs text-gray-300 line-clamp-2" data-bind="item.excerpt">Exploring the latest technologies and frameworks shaping modern web development...</p>
+                        </div>
+                        
+                        <div class="bg-white/5 rounded-lg p-3 hover:bg-white/10 transition-colors cursor-pointer" data-mock="true">
+                            <h4 class="font-medium text-white text-sm mb-1 line-clamp-2">AI Integration in Everyday Apps</h4>
+                            <p class="text-xs text-gray-400 mb-2">Wired • 4h ago</p>
+                            <p class="text-xs text-gray-300 line-clamp-2">How artificial intelligence is seamlessly integrated into the applications we use daily...</p>
+                        </div>
+                        
+                        <div class="bg-white/5 rounded-lg p-3 hover:bg-white/10 transition-colors cursor-pointer" data-mock="true">
+                            <h4 class="font-medium text-white text-sm mb-1 line-clamp-2">Design Systems at Scale</h4>
+                            <p class="text-xs text-gray-400 mb-2">Medium • 1d ago</p>
+                            <p class="text-xs text-gray-300 line-clamp-2">Best practices for implementing and maintaining design systems across large organizations...</p>
+                        </div>
+                        <!-- @END_MAP )) -->
+                    </div>
+                </div>
+                <!-- @END_COMPONENT: RSSFeedWidget -->
+
+                <!-- Budget Tracker Widget (Copilot) -->
+                <!-- @COMPONENT: BudgetTrackerWidget -->
+                <div class="widget-card rounded-2xl p-6 animate-fade-in">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-lg font-semibold text-white flex items-center">
+                            <i class="fas fa-wallet text-emerald-400 mr-2"></i>
+                            Budget
+                        </h3>
+                        <span class="text-xs text-gray-400 bg-emerald-400/20 px-2 py-1 rounded-full">Copilot</span>
+                    </div>
+                    
+                    <div class="space-y-4">
+                        <div class="text-center">
+                            <p class="text-2xl font-bold text-emerald-400" data-bind="budget.remaining">$2,347</p>
+                            <p class="text-sm text-gray-400">Remaining this month</p>
+                        </div>
+                        
+                        <div class="space-y-3">
+                            <!-- @MAP: budgetCategories.map(category => ( -->
+                            <div class="bg-white/5 rounded-lg p-3" data-mock="true">
+                                <div class="flex items-center justify-between mb-2">
+                                    <span class="text-sm text-white" data-bind="category.name">Food & Dining</span>
+                                    <span class="text-sm text-gray-400" data-bind="category.spent">$420 / $500</span>
+                                </div>
+                                <div class="w-full bg-gray-700 rounded-full h-2">
+                                    <div class="bg-gradient-to-r from-emerald-400 to-green-400 h-2 rounded-full" style="width: 84%"></div>
+                                </div>
+                            </div>
+                            
+                            <div class="bg-white/5 rounded-lg p-3" data-mock="true">
+                                <div class="flex items-center justify-between mb-2">
+                                    <span class="text-sm text-white">Transportation</span>
+                                    <span class="text-sm text-gray-400">$180 / $300</span>
+                                </div>
+                                <div class="w-full bg-gray-700 rounded-full h-2">
+                                    <div class="bg-gradient-to-r from-blue-400 to-cyan-400 h-2 rounded-full" style="width: 60%"></div>
+                                </div>
+                            </div>
+                            
+                            <div class="bg-white/5 rounded-lg p-3" data-mock="true">
+                                <div class="flex items-center justify-between mb-2">
+                                    <span class="text-sm text-white">Entertainment</span>
+                                    <span class="text-sm text-gray-400">$95 / $200</span>
+                                </div>
+                                <div class="w-full bg-gray-700 rounded-full h-2">
+                                    <div class="bg-gradient-to-r from-purple-400 to-pink-400 h-2 rounded-full" style="width: 47.5%"></div>
+                                </div>
+                            </div>
+                            <!-- @END_MAP )) -->
+                        </div>
+                    </div>
+                </div>
+                <!-- @END_COMPONENT: BudgetTrackerWidget -->
+
+                <!-- Daily Schedule Widget -->
+                <!-- @COMPONENT: DailyScheduleWidget -->
+                <div class="widget-card rounded-2xl p-6 animate-fade-in">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-lg font-semibold text-white flex items-center">
+                            <i class="fas fa-clock text-teal-400 mr-2"></i>
+                            Daily Schedule
+                        </h3>
+                        <button class="text-teal-400 hover:text-teal-300 text-sm" data-event="click:addScheduleItem">
+                            <i class="fas fa-plus"></i>
+                        </button>
+                    </div>
+                    
+                    <div class="space-y-2 max-h-48 overflow-y-auto scrollbar-thin">
+                        <!-- @MAP: scheduleItems.map(item => ( -->
+                        <div class="flex items-center space-x-3 p-2 hover:bg-white/5 rounded-lg transition-colors" data-mock="true">
+                            <div class="w-12 text-xs text-teal-400 font-mono" data-bind="item.time">09:00</div>
+                            <div class="flex-1">
+                                <p class="text-sm text-white" data-bind="item.activity">Morning workout</p>
+                                <p class="text-xs text-gray-400" data-bind="item.duration">45 min</p>
+                            </div>
+                            <div class="w-2 h-2 bg-teal-400 rounded-full"></div>
+                        </div>
+                        
+                        <div class="flex items-center space-x-3 p-2 hover:bg-white/5 rounded-lg transition-colors" data-mock="true">
+                            <div class="w-12 text-xs text-teal-400 font-mono">10:00</div>
+                            <div class="flex-1">
+                                <p class="text-sm text-white">Team standup</p>
+                                <p class="text-xs text-gray-400">30 min</p>
+                            </div>
+                            <div class="w-2 h-2 bg-blue-400 rounded-full"></div>
+                        </div>
+                        
+                        <div class="flex items-center space-x-3 p-2 hover:bg-white/5 rounded-lg transition-colors" data-mock="true">
+                            <div class="w-12 text-xs text-teal-400 font-mono">12:00</div>
+                            <div class="flex-1">
+                                <p class="text-sm text-white">Lunch break</p>
+                                <p class="text-xs text-gray-400">60 min</p>
+                            </div>
+                            <div class="w-2 h-2 bg-green-400 rounded-full"></div>
+                        </div>
+                        
+                        <div class="flex items-center space-x-3 p-2 hover:bg-white/5 rounded-lg transition-colors" data-mock="true">
+                            <div class="w-12 text-xs text-teal-400 font-mono">14:00</div>
+                            <div class="flex-1">
+                                <p class="text-sm text-white">Focus work</p>
+                                <p class="text-xs text-gray-400">120 min</p>
+                            </div>
+                            <div class="w-2 h-2 bg-purple-400 rounded-full"></div>
+                        </div>
+                        <!-- @END_MAP )) -->
+                    </div>
+                </div>
+                <!-- @END_COMPONENT: DailyScheduleWidget -->
+
+                <!-- Habit Tracker Widget -->
+                <!-- @COMPONENT: HabitTrackerWidget -->
+                <div class="widget-card rounded-2xl p-6 animate-fade-in">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-lg font-semibold text-white flex items-center">
+                            <i class="fas fa-check-circle text-cyan-400 mr-2"></i>
+                            Habits
+                        </h3>
+                        <button class="text-cyan-400 hover:text-cyan-300 text-sm" data-event="click:addHabit">
+                            <i class="fas fa-plus"></i>
+                        </button>
+                    </div>
+                    
+                    <div class="space-y-4">
+                        <!-- @MAP: habits.map(habit => ( -->
+                        <div class="bg-white/5 rounded-lg p-3" data-mock="true">
+                            <div class="flex items-center justify-between mb-3">
+                                <span class="text-sm text-white font-medium" data-bind="habit.name">Morning Exercise</span>
+                                <span class="text-xs text-cyan-400" data-bind="habit.streak">5 day streak</span>
+                            </div>
+                            <div class="flex items-center space-x-1">
+                                <!-- @MAP: habit.weekProgress.map(day => ( -->
+                                <div class="habit-dot completed" title="Completed"></div>
+                                <div class="habit-dot completed" title="Completed"></div>
+                                <div class="habit-dot completed" title="Completed"></div>
+                                <div class="habit-dot missed" title="Missed"></div>
+                                <div class="habit-dot completed" title="Completed"></div>
+                                <div class="habit-dot completed" title="Completed"></div>
+                                <div class="habit-dot pending" title="Today"></div>
+                                <!-- @END_MAP )) -->
+                            </div>
+                        </div>
+                        
+                        <div class="bg-white/5 rounded-lg p-3" data-mock="true">
+                            <div class="flex items-center justify-between mb-3">
+                                <span class="text-sm text-white font-medium">Read 30 min</span>
+                                <span class="text-xs text-cyan-400">3 day streak</span>
+                            </div>
+                            <div class="flex items-center space-x-1">
+                                <div class="habit-dot completed" title="Completed"></div>
+                                <div class="habit-dot completed" title="Completed"></div>
+                                <div class="habit-dot missed" title="Missed"></div>
+                                <div class="habit-dot completed" title="Completed"></div>
+                                <div class="habit-dot completed" title="Completed"></div>
+                                <div class="habit-dot completed" title="Completed"></div>
+                                <div class="habit-dot pending" title="Today"></div>
+                            </div>
+                        </div>
+                        
+                        <div class="bg-white/5 rounded-lg p-3" data-mock="true">
+                            <div class="flex items-center justify-between mb-3">
+                                <span class="text-sm text-white font-medium">Meditate</span>
+                                <span class="text-xs text-cyan-400">2 day streak</span>
+                            </div>
+                            <div class="flex items-center space-x-1">
+                                <div class="habit-dot missed" title="Missed"></div>
+                                <div class="habit-dot completed" title="Completed"></div>
+                                <div class="habit-dot missed" title="Missed"></div>
+                                <div class="habit-dot missed" title="Missed"></div>
+                                <div class="habit-dot completed" title="Completed"></div>
+                                <div class="habit-dot completed" title="Completed"></div>
+                                <div class="habit-dot pending" title="Today"></div>
+                            </div>
+                        </div>
+                        <!-- @END_MAP )) -->
+                    </div>
+                </div>
+                <!-- @END_COMPONENT: HabitTrackerWidget -->
+
+                <!-- Fitness Tracker Widget -->
+                <!-- @COMPONENT: FitnessTrackerWidget -->
+                <div class="widget-card rounded-2xl p-6 animate-fade-in">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-lg font-semibold text-white flex items-center">
+                            <i class="fas fa-dumbbell text-red-400 mr-2"></i>
+                            Fitness
+                        </h3>
+                        <button class="text-red-400 hover:text-red-300 text-sm" data-event="click:addWorkout">
+                            <i class="fas fa-plus"></i>
+                        </button>
+                    </div>
+                    
+                    <div class="space-y-4">
+                        <div class="grid grid-cols-2 gap-4">
+                            <div class="text-center">
+                                <p class="text-lg font-bold text-red-400" data-bind="fitness.steps">8,347</p>
+                                <p class="text-xs text-gray-400">Steps today</p>
+                            </div>
+                            <div class="text-center">
+                                <p class="text-lg font-bold text-orange-400" data-bind="fitness.calories">420</p>
+                                <p class="text-xs text-gray-400">Calories burned</p>
+                            </div>
+                        </div>
+                        
+                        <div class="space-y-3">
+                            <!-- @MAP: recentWorkouts.map(workout => ( -->
+                            <div class="bg-white/5 rounded-lg p-3" data-mock="true">
+                                <div class="flex items-center justify-between mb-1">
+                                    <span class="text-sm text-white font-medium" data-bind="workout.type">Upper Body Strength</span>
+                                    <span class="text-xs text-gray-400" data-bind="workout.date">Today</span>
+                                </div>
+                                <div class="flex items-center justify-between">
+                                    <span class="text-xs text-gray-400" data-bind="workout.duration">45 min</span>
+                                    <span class="text-xs text-red-400" data-bind="workout.calories">380 cal</span>
+                                </div>
+                            </div>
+                            
+                            <div class="bg-white/5 rounded-lg p-3" data-mock="true">
+                                <div class="flex items-center justify-between mb-1">
+                                    <span class="text-sm text-white font-medium">Cardio Run</span>
+                                    <span class="text-xs text-gray-400">Yesterday</span>
+                                </div>
+                                <div class="flex items-center justify-between">
+                                    <span class="text-xs text-gray-400">30 min</span>
+                                    <span class="text-xs text-red-400">290 cal</span>
+                                </div>
+                            </div>
+                            <!-- @END_MAP )) -->
+                        </div>
+                        
+                        <div class="bg-white/5 rounded-lg p-3">
+                            <div class="flex items-center justify-between mb-2">
+                                <span class="text-sm text-white">Weekly Goal</span>
+                                <span class="text-sm text-gray-400" data-bind="weeklyProgress">4/5 workouts</span>
+                            </div>
+                            <div class="w-full bg-gray-700 rounded-full h-2">
+                                <div class="bg-gradient-to-r from-red-400 to-pink-400 h-2 rounded-full" style="width: 80%"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- @END_COMPONENT: FitnessTrackerWidget -->
+
+            </div>
+        </main>
+        <!-- @END_COMPONENT: DashboardLayout -->
+    </div>
+
+    <script>
+        // TODO: Implement dashboard functionality including:
+        // - Widget CRUD operations
+        // - Data persistence with localStorage
+        // - API integrations for Goodreads, iCal, RSS, and Copilot
+        // - Real-time updates and notifications
+        // - Widget customization (show/hide, reorder)
+        // - Data export functionality
+        // - Responsive behavior optimization
+
+        (function() {
+            // Initialize dashboard
+            function initDashboard() {
+                console.log('Personal Dashboard initialized');
+                
+                // Add click handlers for interactive elements
+                document.addEventListener('click', function(e) {
+                    const target = e.target.closest('[data-event]');
+                    if (target) {
+                        const event = target.getAttribute('data-event');
+                        handleUIEvent(event, target);
+                    }
+                });
+
+                // Initialize widget animations
+                const widgets = document.querySelectorAll('.widget-card');
+                widgets.forEach((widget, index) => {
+                    widget.style.animationDelay = `${index * 0.1}s`;
+                });
+
+                // TODO: Load saved data from localStorage
+                // TODO: Initialize API connections
+                // TODO: Set up periodic data refresh
+            }
+
+            function handleUIEvent(event, element) {
+                console.log('UI Event:', event);
+                
+                // TODO: Implement actual event handlers
+                switch(event) {
+                    case 'click:toggleNotifications':
+                        console.log('Toggle notifications');
+                        break;
+                    case 'click:openSettings':
+                        console.log('Open settings modal');
+                        break;
+                    case 'click:addMusic':
+                        console.log('Add new music entry');
+                        break;
+                    case 'click:addTodo':
+                        console.log('Add new todo item');
+                        break;
+                    case 'click:addMeal':
+                        console.log('Add meal to planner');
+                        break;
+                    case 'click:addProject':
+                        console.log('Add new project');
+                        break;
+                    case 'click:refreshFeed':
+                        console.log('Refresh RSS feed');
+                        break;
+                    case 'click:addScheduleItem':
+                        console.log('Add schedule item');
+                        break;
+                    case 'click:addHabit':
+                        console.log('Add new habit');
+                        break;
+                    case 'click:addWorkout':
+                        console.log('Add new workout');
+                        break;
+                    default:
+                        console.log('Unhandled event:', event);
+                }
+            }
+
+            // Initialize when DOM is ready
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', initDashboard);
+            } else {
+                initDashboard();
+            }
+        })();
+    </script>
+</body>
+</html>
